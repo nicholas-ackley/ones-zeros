@@ -1,0 +1,261 @@
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cctype>
+#include <stdlib.h>
+using namespace std;
+
+
+
+class Bank_Account {
+    int accountNum;
+    char name[50];
+    char type;
+    int Money_Depo;
+
+public:
+    void create_account();
+    void display_account();
+    void deposit_money(int amount);
+    void withdraw_money(int amount);
+    void check_balance();
+    void modify_account();
+    int get_account_number() const;
+    void save_account();
+    void read_account(int accNum);
+};
+
+void Bank_Account::create_account() {
+    system("clear");
+    cout << "\tEnter the account Number: ";
+    cin >> accountNum;
+    cout << "\tEnter the name of the account holder: ";
+    cin.ignore();
+    cin.getline(name, 50);
+    cout << "\tEnter the type of the account (S for Saving, C for Current): ";
+    cin >> type;
+    type = toupper(type);
+    cout << "\tEnter the initial amount (>=500 for saving and >= 1000 for current): ";
+    cin >> Money_Depo;
+    cout << "\n\tAccount Created!\n";
+}
+
+void Bank_Account::display_account() {
+    cout << "\tBank Account Number " << accountNum << endl;
+    cout << "\tAccount Holder name " << name << endl;
+    cout << "\tType of Account " << type << endl;
+    cout << "\tBalance Amount: " << Money_Depo << endl;
+}
+
+void Bank_Account::deposit_money(int amount) {
+    Money_Depo += amount;
+    cout << "\tAmount Deposited. New Balance: " << Money_Depo << endl;
+}
+
+void Bank_Account::withdraw_money(int amount) {
+    if (amount <= Money_Depo) {
+        Money_Depo -= amount;
+        cout << "\tAmount Withdrawn. New Balance: " << Money_Depo << endl;
+    } else {
+        cout << "\tInsufficient funds!\n";
+    }
+}
+
+void Bank_Account::check_balance() {
+    cout << "\tBalance Amount: " << Money_Depo << endl;
+}
+
+void Bank_Account::modify_account() {
+    int choice, amount;
+    cout << "\t1. Deposit Money\n";
+    cout << "\t2. Withdraw Money\n";
+    cout << "\t3. Change Account Holder Name\n";
+    cout << "\t4. Change Account Type\n";
+    cout << "\t5. Save Account\n";
+    cout << "\t6. Exit\n";
+    cout << "\tEnter your choice (1-6): ";
+    cin >> choice;
+
+    switch (choice) {
+        case 1:
+            cout << "\tEnter the amount to deposit: ";
+            cin >> amount;
+            deposit_money(amount);
+            break;
+        case 2:
+            cout << "\tEnter the amount to withdraw: ";
+            cin >> amount;
+            withdraw_money(amount);
+            break;
+        case 3:
+            cout << "\tEnter the new account holder name: ";
+            cin.ignore();
+            cin.getline(name, 50);
+            cout << "\tAccount Holder Name Updated.\n";
+            break;
+        case 4:
+            cout << "\tEnter the new account type (S for Saving, C for Current): ";
+            cin >> type;
+            type = toupper(type);
+            cout << "\tAccount Type Updated.\n";
+            break;
+        case 5:
+            save_account();
+            cout << "\tAccount Saved.\n";
+            break;
+        case 6:
+            cout << "\tExiting Modify Menu.\n";
+            break;
+        default:
+            cout << "\tInvalid choice.\n";
+    }
+}
+
+int Bank_Account::get_account_number() const {
+    return accountNum;
+}
+
+void Bank_Account::save_account() {
+    ofstream outFile;
+    outFile.open("accounts.txt", ios::app);
+    outFile.write(reinterpret_cast<char*>(this), sizeof(*this));
+    outFile.close();
+}
+
+void Bank_Account::read_account(int accNum) {
+    ifstream inFile;
+    inFile.open("accounts.txt", ios::binary);
+
+    if (!inFile) {
+        cout << "\tFile not found!\n";
+        return;
+    }
+
+    while (inFile.read(reinterpret_cast<char*>(this), sizeof(*this))) {
+        if (get_account_number() == accNum) {
+            cout << "\tAccount found:\n";
+            display_account();
+            break;
+        }
+    }
+
+    inFile.close();
+}
+
+int main() {
+    char ch;
+    int num;
+
+    cout << "\t\t ----------------------------------------" << endl;
+    cout << "\t\t | Welcome to Ackley's Finance System!  |" << endl;
+    cout << "\t\t ----------------------------------------" << endl;
+
+    do {
+        cout << "\n\t ---- Main Menu ---- " << endl;
+        cout << "\t1. Create Account" << endl;
+        cout << "\t2. Deposit Money" << endl;
+        cout << "\t3. Withdraw Money" << endl;
+        cout << "\t4. Check Balance" << endl;
+        cout << "\t5. Find Account by Number" << endl;
+        cout << "\t6. Close Account" << endl;
+        cout << "\t7. Modify an Account" << endl;
+        cout << "\t8. Exit" << endl;
+        cout << "\tEnter your choice (1-8): ";
+        cin >> ch;
+
+        switch (ch) {
+            case '1':
+                {
+                    Bank_Account newAccount;
+                    newAccount.create_account();
+                    newAccount.save_account();
+                    cout << "\n\tAccount Created!\n";
+                }
+                break;
+            case '2':
+                {
+                    system("clear");
+                    cout << "\tEnter the Account Number: ";
+                    cin >> num;
+
+                    Bank_Account accToDeposit;
+                    accToDeposit.read_account(num);
+
+                    int depositAmount;
+                    cout << "\tEnter the amount to deposit: ";
+                    cin >> depositAmount;
+
+                    accToDeposit.deposit_money(depositAmount);
+                    accToDeposit.save_account();
+                }
+                break;
+            case '3':
+                {
+                    system("clear");
+                    cout << "\tEnter the Account Number: ";
+                    cin >> num;
+
+                    Bank_Account accToWithdraw;
+                    accToWithdraw.read_account(num);
+
+                    int withdrawAmount;
+                    cout << "\tEnter the amount to withdraw: ";
+                    cin >> withdrawAmount;
+
+                    accToWithdraw.withdraw_money(withdrawAmount);
+                    accToWithdraw.save_account();
+                }
+                break;
+            case '4':
+                {
+                    system("clear");
+                    cout << "\tEnter the Account Number: ";
+                    cin >> num;
+
+                    Bank_Account accToCheck;
+                    accToCheck.read_account(num);
+                    accToCheck.check_balance();
+                }
+                break;
+            case '5':
+                {
+                    system("clear");
+                    cout << "\tEnter the Account Number: ";
+                    cin >> num;
+
+                    Bank_Account accToFind;
+                    accToFind.read_account(num);
+                }
+                break;
+            case '6':
+                {
+                    system("clear");
+                    cout << "\tEnter the Account Number to Close: ";
+                    cin >> num;
+
+                    // Implement code to close account if needed
+                }
+                break;
+            case '7':
+                {
+                    system("clear");
+                    cout << "\tEnter the Account Number to Modify: ";
+                    cin >> num;
+
+                    Bank_Account accToModify;
+                    accToModify.read_account(num);
+                    accToModify.modify_account();
+                    accToModify.save_account();
+                }
+                break;
+            case '8':
+                cout << "\tThanks for using the Bank Management System\n";
+                break;
+            default:
+                cout << "\tInvalid choice. Please enter a number from 1 to 8.\n";
+        }
+
+    } while (ch != '8');
+
+    return 0;
+}
