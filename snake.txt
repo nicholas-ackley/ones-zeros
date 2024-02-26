@@ -1,0 +1,109 @@
+import pygame
+import sys
+import random
+
+pygame.init()
+
+WIDTH, HEIGHT = 1700, 1000
+win = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake Game")
+
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+
+snake_size = 20
+snake_speed = 15
+
+snake = [(100, 100)]
+snake_direction = (1, 0)
+food = (random.randint(0, WIDTH - snake_size), random.randint(0, HEIGHT - snake_size))
+score = 0
+font = pygame.font.SysFont(None, 30)
+
+clock = pygame.time.Clock()
+game_over = False
+restart = False
+
+def restart_game():
+    global snake, snake_direction, food, score, game_over
+    snake = [(100, 100)]
+    snake_direction = (1, 0)
+    food = (random.randint(0, WIDTH - snake_size), random.randint(0, HEIGHT - snake_size))
+    score = 0
+    game_over = False
+
+while not game_over:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game_over = True
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and snake_direction != (0, 1):
+        snake_direction = (0, -1)
+    elif keys[pygame.K_DOWN] and snake_direction != (0, -1):
+        snake_direction = (0, 1)
+    elif keys[pygame.K_LEFT] and snake_direction != (1, 0):
+        snake_direction = (-1, 0)
+    elif keys[pygame.K_RIGHT] and snake_direction != (-1, 0):
+        snake_direction = (1, 0)
+
+    x, y = snake[0]
+    x += snake_direction[0] * snake_size
+    y += snake_direction[1] * snake_size
+
+    if x < 0 or x >= WIDTH or y < 0 or y >= HEIGHT:
+        game_over = True
+
+    # Check for collisions with the food
+    food_rect = pygame.Rect(*food, snake_size, snake_size)
+    if pygame.Rect(x, y, snake_size, snake_size).colliderect(food_rect):
+        score += 1
+        food = (random.randint(0, WIDTH - snake_size), random.randint(0, HEIGHT - snake_size))
+    else:
+        snake.pop()
+
+    if (x, y) in snake:
+        game_over = True
+
+    snake.insert(0, (x, y))
+
+    win.fill(WHITE)
+    pygame.draw.rect(win, RED, (*food, snake_size, snake_size))
+    for segment in snake:
+        pygame.draw.rect(win, GREEN, (*segment, snake_size, snake_size))
+
+    score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    win.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+
+    clock.tick(snake_speed)
+
+#Game over screen
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    win.fill(WHITE)
+    game_over_text = font.render(f"Game Over! Your Score: {score}", True, (0, 0, 0))
+    win.blit(game_over_text, (WIDTH // 2 - 150, HEIGHT // 2 - 30))
+
+    high_score_text = font.render("High Score: 0", True, (0, 0, 0))
+    win.blit(high_score_text, (WIDTH // 2 - 100, HEIGHT // 2 + 20))
+
+    restart_text = font.render("Q to Quit", True, (0, 0, 0))
+    win.blit(restart_text, (WIDTH // 2 - 120, HEIGHT // 2 + 60))
+
+    pygame.display.flip()
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_r]:
+        restart_game()
+    elif keys[pygame.K_q]:
+        pygame.quit()
+        sys.exit()
+    
+    pygame.time.delay(10)
